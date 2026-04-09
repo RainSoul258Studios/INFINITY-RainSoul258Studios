@@ -1,0 +1,7 @@
+{
+  "name": "Remix: RainSoul258Studios INFINITY",
+  "description": "Plataforma profesional de creación multimodal impulsada por IA, incluyendo el modelo musical avanzado N258Z para generación de audio de máxima calidad.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

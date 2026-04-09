@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user of the application.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "The user's profile photo URL."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the user account was created."
+        }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Creation": {
+      "title": "Creation",
+      "description": "A generated piece of content (music, image, text, etc.).",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user who created this."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["music", "image", "text", "audio", "search", "tts"],
+          "description": "The type of creation."
+        },
+        "prompt": {
+          "type": "string",
+          "description": "The prompt or input used to generate the creation."
+        },
+        "result": {
+          "type": "string",
+          "description": "The generated result (URL or text content)."
+        },
+        "createdAt": {
+          "type": "timestamp",
+          "description": "When the creation was generated."
+        }
+      },
+      "required": ["userId", "type", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "User" },
+      "description": "Stores user profiles."
+    },
+    "/creations/{creationId}": {
+      "schema": { "$ref": "Creation" },
+      "description": "Stores generated content."
+    }
+  }
+}
