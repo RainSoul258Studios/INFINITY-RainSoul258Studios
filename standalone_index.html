@@ -1,0 +1,421 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071218">
+<meta name="application-name" content="RainSoul258Studios INFINITY">
+<meta name="description" content="INFINITY standalone: DAW local, audio engine, project persistence and agent console.">
+<title>RainSoul258Studios INFINITY — Standalone Studio</title>
+<style>
+:root{--bg:#060a0f;--panel:#0b121a;--panel2:#0e1822;--line:#1c3440;--cyan:#54d9ee;--green:#7ce6a0;--red:#ff6f78;--text:#dceaf0;--muted:#78909c;--accent:#9cf2ff;--shadow:0 12px 40px rgba(0,0,0,.35)}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:12px ui-monospace,SFMono-Regular,Consolas,monospace}
+button,input,textarea,select{font:inherit}button{background:#12222e;color:var(--accent);border:1px solid #244857;border-radius:6px;padding:8px 11px;cursor:pointer}button:hover{background:#18313f}button:disabled{opacity:.45;cursor:not-allowed}
+input,textarea,select{width:100%;background:#081018;color:#d8f6ff;border:1px solid #23404c;border-radius:6px;padding:8px;outline:none}input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 2px rgba(84,217,238,.08)}
+.app{height:100vh;display:grid;grid-template-rows:48px 1fr 118px;overflow:hidden}
+.header{display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#0a1119;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;color:#c8f8ff}.status{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:10px}.dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+.workspace{min-height:0;display:grid;grid-template-columns:310px 1fr 340px}
+.sidebar,.inspector{min-width:0;overflow:auto;background:var(--panel);padding:12px}.sidebar{border-right:1px solid var(--line)}.inspector{border-left:1px solid var(--line)}
+.main{min-width:0;min-height:0;display:flex;flex-direction:column;background:#070d13}
+.section{border:1px solid var(--line);background:linear-gradient(180deg,#0c151e,#091118);border-radius:8px;padding:10px;margin-bottom:10px;box-shadow:var(--shadow)}
+.section h3{font-size:11px;letter-spacing:1px;color:#9fb6bf;margin:0 0 9px;text-transform:uppercase}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+label{display:block;color:var(--muted);font-size:10px;margin:7px 0}.label{display:block;color:var(--muted);font-size:10px;margin-bottom:4px}
+.topbar{display:flex;gap:7px;align-items:center;padding:7px;border-bottom:1px solid var(--line);flex-wrap:wrap}.topbar .spacer{flex:1}
+.time{font-variant-numeric:tabular-nums;color:#d5faff}.pill{border:1px solid #29424d;border-radius:99px;padding:5px 8px;color:var(--muted);white-space:nowrap}
+.ruler{height:31px;overflow:hidden;white-space:pre;padding:8px 12px;color:#718894;border-bottom:1px solid var(--line);background:#080f15}
+.tracks{flex:1;min-height:0;overflow:auto;padding:10px}
+.track{border:1px solid #23434e;background:#0c2028;border-radius:8px;margin-bottom:8px;padding:9px}.track.selected{border-color:var(--cyan);box-shadow:0 0 0 1px rgba(84,217,238,.12)}
+.trackhead{display:grid;grid-template-columns:22px minmax(120px,1fr) 32px 32px 85px 55px;gap:7px;align-items:center}.trackhead input[type=range]{padding:0}.trackname{font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:9px;color:#8fa8b2;border:1px solid #2a444f;border-radius:4px;padding:2px 5px}.clip{margin-top:8px;min-height:42px;border:1px solid #1f5967;background:#124653;border-radius:6px;padding:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}.clip.empty{background:#0b171d;border-style:dashed;color:#607883}.clip strong{color:#c5f6ff}.clip small{color:#83a6b0}
+.meter{height:7px;border-radius:8px;background:#17232b;overflow:hidden}.meter i{display:block;height:100%;width:0;background:var(--cyan);transition:width .05s linear}
+.master{padding:9px;border-top:1px solid var(--line);background:#080e14;display:grid;grid-template-columns:1fr 250px;gap:12px}.wave{height:54px;border:1px solid #203945;background:#05090d;border-radius:6px}
+.console{height:118px;overflow:auto;padding:8px;border-top:1px solid var(--line);background:#04070a}.log{line-height:1.45;white-space:pre-wrap}.ok{color:var(--green)}.err{color:var(--red)}.muted{color:var(--muted)}
+.chat{height:300px;overflow:auto;background:#05080b;border:1px solid var(--line);border-radius:6px;padding:9px}.msg{padding:8px;margin-bottom:8px;border-left:2px solid #29404a;line-height:1.5}.msg.user{border-left-color:var(--cyan);color:#bff4ff}.msg.system{border-left-color:var(--green)}.msg pre{white-space:pre-wrap;overflow:auto;background:#020407;border:1px solid #17252d;padding:8px;border-radius:5px}
+.agent-input{display:grid;grid-template-columns:1fr 72px;gap:6px;margin-top:7px}.macro{width:100%;text-align:left;margin-bottom:6px}
+.small{font-size:10px}.danger{color:var(--red)}.oktxt{color:var(--green)}
+hr{border:0;border-top:1px solid var(--line);margin:10px 0}
+@media(max-width:1100px){.workspace{grid-template-columns:250px 1fr}.inspector{display:none}.master{grid-template-columns:1fr}.trackhead{grid-template-columns:22px minmax(100px,1fr) 32px 32px 70px}}
+@media(max-width:760px){.workspace{grid-template-columns:1fr}.sidebar{display:none}.app{grid-template-rows:48px 1fr 90px}.trackhead{grid-template-columns:22px 1fr 32px 32px}.trackhead .volwrap{display:none}.topbar .secondary{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="header">
+  <div class="brand">RainSoul258Studios INFINITY // STANDALONE STUDIO</div>
+  <div class="status"><span class="dot" id="healthDot"></span><span id="health">LOCAL ENGINE READY</span><span class="pill" id="integrity">SHA256 57fdc666…0cd89</span></div>
+</header>
+
+<div class="workspace">
+<aside class="sidebar">
+  <div class="section">
+    <h3>Project</h3>
+    <label>Nombre<input id="projectName" value="INFINITY Standalone Project"></label>
+    <label>Notas / prompt<textarea id="projectNotes" rows="3" placeholder="Describe la producción..."></textarea></label>
+    <div class="row"><button id="saveBtn">GUARDAR</button><button id="loadBtn">CARGAR</button></div>
+    <div class="row" style="margin-top:7px"><button id="exportBtn">EXPORTAR</button><button id="importBtn">IMPORTAR</button></div>
+    <input id="projectFile" type="file" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="section">
+    <h3>Audio</h3>
+    <input id="audioFiles" type="file" accept="audio/*,.wav,.mp3,.ogg,.m4a,.aac,.flac" multiple>
+    <button id="addTrackBtn" style="width:100%;margin-top:7px">+ PISTA VACÍA</button>
+    <div class="row" style="margin-top:7px"><button id="renderBtn">RENDER WAV</button><button id="stemsBtn">STEMS WAV</button></div>
+    <div class="meter" style="margin-top:8px"><i id="progress"></i></div>
+  </div>
+
+  <div class="section">
+    <h3>Transporte</h3>
+    <div class="row">
+      <label>BPM<input id="bpm" type="number" min="30" max="300" value="120"></label>
+      <label>Compases<input id="bars" type="number" min="1" max="256" value="16"></label>
+    </div>
+    <div class="row">
+      <label>Inicio (s)<input id="startSec" type="number" min="0" step=".01" value="0"></label>
+      <label>Ganancia master<input id="masterGain" type="number" min="0" max="2" step=".01" value="1"></label>
+    </div>
+  </div>
+
+  <div class="section">
+    <h3>Persistencia</h3>
+    <div class="pill" id="dbStatus">IndexedDB: comprobando…</div>
+    <div class="pill" style="margin-top:6px" id="audioStatus">AudioContext: esperando interacción</div>
+    <div class="small muted" style="margin-top:8px">Los proyectos guardados localmente incluyen metadatos y audio importado. La exportación JSON puede crecer considerablemente con archivos grandes.</div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <button id="playBtn">▶ PLAY</button><button id="pauseBtn">Ⅱ PAUSE</button><button id="stopBtn">■ STOP</button>
+    <span class="pill">BPM <b id="bpmReadout">120</b></span>
+    <span class="time" id="time">00:00.000</span>
+    <span class="pill" id="state">READY</span>
+    <span class="spacer"></span>
+    <button class="secondary" id="clearBtn">LIMPIAR PISTAS</button>
+  </div>
+  <div class="ruler" id="ruler"></div>
+  <div class="tracks" id="tracks"></div>
+  <div class="master">
+    <div><canvas id="scope" class="wave" width="900" height="54"></canvas></div>
+    <div><div class="label">MASTER LEVEL</div><div class="meter"><i id="masterMeter"></i></div><div class="small muted" style="margin-top:5px">Web Audio API · OfflineAudioContext · WAV PCM 16-bit</div></div>
+  </div>
+</main>
+
+<aside class="inspector">
+  <div class="section">
+    <h3>INFINITY Agent Core</h3>
+    <div class="small muted">Modo local: no inventa acceso a servidor, Docker, terminal o blockchain. Puede ejecutar acciones reales del navegador y delegar a un backend opcional.</div>
+    <div style="margin-top:8px" class="row3">
+      <button class="macro" data-cmd="status">ESTADO</button>
+      <button class="macro" data-cmd="project">PROYECTO</button>
+      <button class="macro" data-cmd="diagnose">DIAGNÓSTICO</button>
+    </div>
+    <div class="row3">
+      <button class="macro" data-cmd="render">RENDER</button>
+      <button class="macro" data-cmd="export">EXPORTAR</button>
+      <button class="macro" data-cmd="help">AYUDA</button>
+    </div>
+  </div>
+  <div class="section">
+    <h3>Knowledge</h3>
+    <input id="knowledgeSearch" placeholder="FFT, RMS, armonía, timbre…">
+    <div id="knowledgeResults" class="small" style="margin-top:8px"></div>
+  </div>
+  <div class="section">
+    <h3>Agent Console</h3>
+    <div id="chat" class="chat"></div>
+    <div class="agent-input"><input id="agentInput" placeholder="Comando local…"><button id="agentSend">EXEC</button></div>
+  </div>
+</aside>
+</div>
+
+<div class="console"><b>ENGINE CONSOLE</b><div id="console" class="log"></div></div>
+</div>
+
+<script>
+"use strict";
+
+/* INFINITY Standalone Engine
+   - Zero required ES-module imports.
+   - Zero required backend.
+   - Web Audio playback + OfflineAudioContext rendering.
+   - IndexedDB project/audio persistence.
+   - JSON project interchange with embedded audio.
+   - Optional backend integration via window.INFINITY_BACKEND_URL.
+*/
+
+const APP_VERSION="2.0.0-standalone";
+const INTEGRITY="57fdc666d47e649e91d063f9a928ea68dc00b6a8363f337be6def892b0d0cd89";
+const DB_NAME="RainSoul258Studios_INFINITY_STANDALONE";
+const DB_VERSION=2;
+const $=id=>document.getElementById(id);
+const uid=()=>crypto.randomUUID?crypto.randomUUID():"id-"+Date.now()+"-"+Math.random().toString(16).slice(2);
+
+let db=null;
+let audioCtx=null;
+let masterNode=null;
+let analyser=null;
+let raf=0;
+let selectedTrack=null;
+
+const state={
+  projectId:uid(), name:"INFINITY Standalone Project", notes:"", bpm:120, bars:16, master:1,
+  tracks:[], playing:false, paused:false, startedAt:0, pauseAt:0, sources:[]
+};
+
+function log(text, cls=""){const a=document.createElement("div");a.textContent=text;a.className=cls;$("console").append(a);$("console").scrollTop=1e9}
+function fmt(sec){sec=Math.max(0,Number(sec)||0);const m=Math.floor(sec/60),s=(sec%60).toFixed(3).padStart(6,"0");return String(m).padStart(2,"0")+":"+s}
+function durationForProject(){return state.bars*4*(60/state.bpm)}
+function safeName(s){return (s||"INFINITY").replace(/[^\w.-]+/g,"_").slice(0,80)||"INFINITY"}
+
+function openDB(){
+ return new Promise((resolve,reject)=>{
+  const req=indexedDB.open(DB_NAME,DB_VERSION);
+  req.onupgradeneeded=e=>{
+    const d=e.target.result;
+    if(!d.objectStoreNames.contains("projects"))d.createObjectStore("projects",{keyPath:"id"});
+    if(!d.objectStoreNames.contains("audio"))d.createObjectStore("audio",{keyPath:"id"});
+  };
+  req.onsuccess=e=>{db=e.target.result;$("dbStatus").textContent="IndexedDB: ONLINE";resolve()};
+  req.onerror=()=>reject(req.error);
+ });
+}
+function tx(store,mode="readonly"){return db.transaction(store,mode).objectStore(store)}
+async function put(store,value){return new Promise((r,j)=>{const q=tx(store,"readwrite").put(value);q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})}
+async function get(store,key){return new Promise((r,j)=>{const q=tx(store).get(key);q.onsuccess=()=>r(q.result);q.onerror=()=>j(q.error)})}
+
+function ensureAudio(){
+ if(!audioCtx){
+  const C=window.AudioContext||window.webkitAudioContext;
+  if(!C)throw new Error("Este navegador no soporta Web Audio API.");
+  audioCtx=new C();
+  masterNode=audioCtx.createGain();
+  analyser=audioCtx.createAnalyser();
+  analyser.fftSize=1024;
+  masterNode.connect(analyser);analyser.connect(audioCtx.destination);
+  $("audioStatus").textContent="AudioContext: "+audioCtx.state.toUpperCase();
+  drawScope();
+ }
+ if(audioCtx.state==="suspended")audioCtx.resume();
+ $("audioStatus").textContent="AudioContext: "+audioCtx.state.toUpperCase();
+ return audioCtx;
+}
+function drawScope(){
+ cancelAnimationFrame(raf);
+ const c=$("scope"),g=c.getContext("2d"),buf=new Uint8Array(512);
+ function frame(){
+  raf=requestAnimationFrame(frame);g.clearRect(0,0,c.width,c.height);
+  if(!analyser)return;
+  analyser.getByteTimeDomainData(buf);g.beginPath();
+  for(let i=0;i<buf.length;i++){const x=i/(buf.length-1)*c.width,y=(buf[i]/255)*c.height;i?g.lineTo(x,y):g.moveTo(x,y)}
+  g.strokeStyle="#54d9ee";g.lineWidth=1;g.stroke();
+  let peak=0;for(const v of buf)peak=Math.max(peak,Math.abs(v-128)/128);
+  $("masterMeter").style.width=Math.min(100,peak*140)+"%";
+ }
+ frame();
+}
+
+function newTrack(name="Track "+(state.tracks.length+1)){const t={id:uid(),name,volume:1,mute:false,solo:false,fileName:"",mime:"",audioId:null,duration:0,buffer:null};state.tracks.push(t);return t}
+function renderTracks(){
+ const host=$("tracks");host.innerHTML="";
+ if(!state.tracks.length){host.innerHTML='<div class="section muted">No hay pistas. Importa audio o crea una pista vacía.</div>';return}
+ state.tracks.forEach(t=>{
+  const el=document.createElement("div");el.className="track"+(selectedTrack===t.id?" selected":"");el.dataset.id=t.id;
+  el.innerHTML=`<div class="trackhead">
+   <button class="sel" title="Seleccionar">●</button>
+   <div class="trackname" title="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>
+   <button class="mute" title="Mute">M</button><button class="solo" title="Solo">S</button>
+   <div class="volwrap"><input class="vol" type="range" min="0" max="1.5" step=".01" value="${t.volume}"></div>
+   <span class="badge">${t.buffer?"AUDIO":"EMPTY"}</span>
+  </div>
+  <div class="clip ${t.buffer?"":"empty"}"><strong>${t.buffer?"AUDIO · "+escapeHtml(t.fileName):"EMPTY TRACK"}</strong><small>${t.buffer?fmt(t.buffer.duration):"sin clip cargado"}</small></div>`;
+  el.onclick=()=>{selectedTrack=t.id;renderTracks()};
+  el.querySelector(".mute").onclick=e=>{e.stopPropagation();t.mute=!t.mute;renderTracks()};
+  el.querySelector(".solo").onclick=e=>{e.stopPropagation();t.solo=!t.solo;renderTracks()};
+  el.querySelector(".vol").oninput=e=>{e.stopPropagation();t.volume=Number(e.target.value)};
+  host.append(el);
+ });
+}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+
+async function loadAudioFile(file){
+ ensureAudio();
+ const ab=await file.arrayBuffer();
+ const buffer=await audioCtx.decodeAudioData(ab.slice(0));
+ const t=newTrack(file.name.replace(/\.[^.]+$/,""));
+ t.fileName=file.name;t.mime=file.type||"audio/*";t.buffer=buffer;t.duration=buffer.duration;
+ const audioId=uid();t.audioId=audioId;
+ await put("audio",{id:audioId,name:file.name,mime:t.mime,data:ab});
+ selectedTrack=t.id;renderTracks();
+ log("LOADED · "+file.name+" · "+fmt(buffer.duration),"ok");
+}
+async function restoreAudioTrack(t){
+ if(!t.audioId)return t;
+ const rec=await get("audio",t.audioId);if(!rec)return t;
+ ensureAudio();t.buffer=await audioCtx.decodeAudioData(rec.data.slice(0));t.duration=t.buffer.duration;
+ return t;
+}
+
+function stopSources(){
+ for(const s of state.sources){try{s.stop()}catch{}}
+ state.sources=[];
+}
+function activeTracks(){const solo=state.tracks.some(t=>t.solo);return state.tracks.filter(t=>t.buffer&&!t.mute&&(!solo||t.solo))}
+async function play(){
+ ensureAudio();stopSources();
+ const offset=state.paused?state.pauseAt:0;const now=audioCtx.currentTime+0.03;
+ for(const t of activeTracks()){
+  const src=audioCtx.createBufferSource(),g=audioCtx.createGain();
+  src.buffer=t.buffer;g.gain.value=t.volume*state.master;src.connect(g);g.connect(masterNode);
+  src.start(now,offset);state.sources.push(src);
+ }
+ state.startedAt=performance.now()/1000-offset;state.playing=true;state.paused=false;
+ $("state").textContent="PLAYING";log("PLAY · "+activeTracks().length+" active tracks","ok");
+}
+function pause(){
+ if(!state.playing)return;state.pauseAt=Math.max(0,performance.now()/1000-state.startedAt);stopSources();state.playing=false;state.paused=true;$("state").textContent="PAUSED";log("PAUSE · "+fmt(state.pauseAt))
+}
+function stop(){stopSources();state.playing=false;state.paused=false;state.pauseAt=0;$("state").textContent="STOPPED";$("time").textContent="00:00.000"}
+function tick(){
+ const t=state.playing?Math.max(0,performance.now()/1000-state.startedAt):state.paused?state.pauseAt:0;
+ $("time").textContent=fmt(t);
+ if(state.playing&&t>=durationForProject()){stop();$("state").textContent="READY"}
+ requestAnimationFrame(tick);
+}
+
+function ruler(){
+ const step=60/state.bpm*4;let out="";
+ for(let i=1;i<=state.bars;i++)out+=String(i).padStart(3,"0")+" | "+(step*(i-1)).toFixed(2)+"s    ";
+ $("ruler").textContent=out;
+ $("bpmReadout").textContent=state.bpm;
+}
+
+function makeWav(buffer,progress){
+ const ch=2,sr=buffer.sampleRate,len=buffer.length;
+ const inter=new Float32Array(len*ch);
+ const L=buffer.getChannelData(0),R=buffer.numberOfChannels>1?buffer.getChannelData(1):L;
+ for(let i=0;i<len;i++){inter[i*2]=L[i];inter[i*2+1]=R[i];if(progress&&i%Math.max(1,Math.floor(len/100))===0)progress(i/len*100)}
+ const bytes=44+inter.length*2,ab=new ArrayBuffer(bytes),v=new DataView(ab);
+ const ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+ ws(0,"RIFF");v.setUint32(4,bytes-8,true);ws(8,"WAVE");ws(12,"fmt ");v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,ch,true);v.setUint32(24,sr,true);v.setUint32(28,sr*ch*2,true);v.setUint16(32,ch*2,true);v.setUint16(34,16,true);ws(36,"data");v.setUint32(40,inter.length*2,true);
+ let o=44;for(let i=0;i<inter.length;i++,o+=2){let x=Math.max(-1,Math.min(1,inter[i]));v.setInt16(o,x<0?x*32768:x*32767,true)}
+ return new Blob([ab],{type:"audio/wav"});
+}
+async function offlineMix(tracks,duration,progress){
+ const C=window.OfflineAudioContext||window.webkitOfflineAudioContext;if(!C)throw new Error("OfflineAudioContext no disponible.");
+ const sr=48000,ctx=new C(2,Math.ceil(duration*sr),sr),master=ctx.createGain();master.gain.value=state.master;master.connect(ctx.destination);
+ const active=tracks.filter(t=>t.buffer&&!t.mute&&(!tracks.some(x=>x.solo)||t.solo));
+ active.forEach(t=>{const s=ctx.createBufferSource(),g=ctx.createGain();s.buffer=t.buffer;g.gain.value=t.volume;s.connect(g);g.connect(master);s.start(0,0,Math.min(t.buffer.duration,duration))});
+ const b=await ctx.startRendering();if(progress)progress(100);return b;
+}
+async function renderMix(){
+ $("state").textContent="RENDERING";$("progress").style.width="5%";
+ const b=await offlineMix(state.tracks,durationForProject(),p=>$("progress").style.width=(5+p*.95)+"%");
+ download(makeWav(b,p=>$("progress").style.width=p+"%"),safeName(state.name)+"-render.wav");
+ $("progress").style.width="100%";$("state").textContent="READY";log("REAL WAV RENDER COMPLETE","ok");
+}
+async function renderStems(){
+ const duration=durationForProject(),list=activeTracks();if(!list.length)throw new Error("No hay pistas con audio activo.");
+ for(let i=0;i<list.length;i++){const t=list[i];$("progress").style.width=(i/list.length*100)+"%";const b=await offlineMix([t],duration);download(makeWav(b),safeName(t.name)+".wav")}
+ $("progress").style.width="100%";log("STEMS EXPORTED · "+list.length,"ok");
+}
+
+function projectMeta(){
+ return {version:APP_VERSION,id:state.projectId,name:$("projectName").value.trim()||"INFINITY Project",notes:$("projectNotes").value,bpm:state.bpm,bars:state.bars,master:state.master,tracks:state.tracks.map(t=>({...t,buffer:undefined})),updatedAt:new Date().toISOString(),integrity:INTEGRITY};
+}
+async function saveProject(){
+ const p=projectMeta();await put("projects",p);
+ for(const t of state.tracks)if(t.audioId&&t.buffer&&!await get("audio",t.audioId)){/* audio normally stored during import */}
+ log("PROJECT SAVED · "+state.tracks.length+" tracks","ok");
+}
+async function loadProject(){
+ const p=await get("projects",state.projectId);if(!p){log("No saved project for current ID.","err");return}
+ $("projectName").value=p.name;$("projectNotes").value=p.notes||"";$("bpm").value=p.bpm||120;$("bars").value=p.bars||16;$("masterGain").value=p.master||1;
+ state.bpm=Number(p.bpm)||120;state.bars=Number(p.bars)||16;state.master=Number(p.master)||1;state.tracks=p.tracks||[];
+ for(const t of state.tracks)await restoreAudioTrack(t);
+ ruler();renderTracks();log("PROJECT LOADED","ok");
+}
+async function projectExport(){
+ const p=projectMeta();p.audio=[];
+ for(const t of state.tracks){if(t.audioId){const rec=await get("audio",t.audioId);if(rec)p.audio.push({id:rec.id,name:rec.name,mime:rec.mime,data:Array.from(new Uint8Array(rec.data))})}}
+ download(new Blob([JSON.stringify(p)],{type:"application/json"}),safeName(p.name)+".json");log("PROJECT JSON EXPORTED","ok");
+}
+async function projectImport(file){
+ const p=JSON.parse(await file.text());state.projectId=p.id||uid();$("projectName").value=p.name||"";$("projectNotes").value=p.notes||"";
+ state.bpm=Number(p.bpm)||120;state.bars=Number(p.bars)||16;state.master=Number(p.master)||1;$("bpm").value=state.bpm;$("bars").value=state.bars;$("masterGain").value=state.master;
+ if(Array.isArray(p.audio))for(const a of p.audio)await put("audio",{id:a.id,name:a.name,mime:a.mime,data:new Uint8Array(a.data).buffer});
+ state.tracks=p.tracks||[];for(const t of state.tracks)await restoreAudioTrack(t);
+ await saveProject();ruler();renderTracks();log("PROJECT JSON IMPORTED · "+state.tracks.length+" tracks","ok");
+}
+
+const KNOWLEDGE=[
+ ["FFT","Audio","Transformación rápida de Fourier para analizar contenido frecuencial de una señal."],
+ ["RMS","Audio","Medida de energía media de una señal; útil para observar nivel percibido y dinámica."],
+ ["Timbre","Música","Conjunto de características espectrales y temporales que diferencia fuentes con igual altura e intensidad."],
+ ["Compás","Música","Organización métrica de pulsos fuertes y débiles en unidades recurrentes."],
+ ["BPM","Producción","Pulsos por minuto; determina la referencia temporal del transporte."],
+ ["OfflineAudioContext","Web Audio","Contexto que permite renderizar audio en memoria sin reproducirlo en tiempo real."],
+ ["IndexedDB","Web","Almacenamiento local estructurado para proyectos y blobs de audio."],
+ ["WAV PCM","Audio","Contenedor de audio sin compresión; esta aplicación exporta PCM lineal de 16 bits."],
+ ["Ganancia","Audio","Multiplicador de amplitud aplicado a una señal antes de su salida."],
+ ["Panorama","Audio","Distribución de una señal entre los canales izquierdo y derecho."]
+];
+function renderKnowledge(q=""){const r=KNOWLEDGE.filter(x=>(x[0]+" "+x[1]+" "+x[2]).toLowerCase().includes(q.toLowerCase()));$("knowledgeResults").innerHTML=r.slice(0,8).map(x=>`<div style="margin-bottom:7px"><b>${escapeHtml(x[0])}</b> <span class="muted">[${escapeHtml(x[1])}]</span><br>${escapeHtml(x[2])}</div>`).join("")||"<span class='muted'>Sin coincidencias.</span>"}
+
+function chat(role,text){const d=document.createElement("div");d.className="msg "+role;d.textContent=text;$("chat").append(d);$("chat").scrollTop=$("chat").scrollHeight}
+async function agentCommand(raw){
+ const q=raw.trim(),l=q.toLowerCase();if(!q)return;
+ chat("user",q);
+ if(l==="help"||l.includes("ayuda")){chat("system","Comandos locales: estado, proyecto, diagnóstico, render, exportar, guardar, cargar, pistas, limpiar. También puedes describir una operación de audio.");return}
+ if(l.includes("estado")||l==="status"){chat("system",`INFINITY ${APP_VERSION}\nAudioContext: ${audioCtx?audioCtx.state:"not initialized"}\nPistas: ${state.tracks.length}\nAudio cargado: ${state.tracks.filter(t=>t.buffer).length}\nDuración proyecto: ${fmt(durationForProject())}\nPersistencia: ${db?"IndexedDB ONLINE":"OFFLINE"}`);return}
+ if(l.includes("proyecto")){chat("system",`Proyecto: ${$("projectName").value}\nBPM: ${state.bpm}\nCompases: ${state.bars}\nMaster: ${state.master}\nID: ${state.projectId}`);return}
+ if(l.includes("diagnóstico")||l.includes("diagnostico")){const issues=[];if(!window.AudioContext&&!window.webkitAudioContext)issues.push("Web Audio API no disponible");if(!window.indexedDB)issues.push("IndexedDB no disponible");if(!window.OfflineAudioContext&&!window.webkitOfflineAudioContext)issues.push("OfflineAudioContext no disponible");chat("system",issues.length?"DIAGNÓSTICO:\\n- "+issues.join("\\n- "):"DIAGNÓSTICO OK · APIs necesarias detectadas.");return}
+ if(l.includes("render")){try{await renderMix();chat("system","Render WAV completado.");}catch(e){chat("system","Render error: "+e.message)}return}
+ if(l.includes("export")){await projectExport();chat("system","Exportación JSON completada.");return}
+ if(l.includes("guardar")){await saveProject();chat("system","Proyecto guardado.");return}
+ if(l.includes("cargar")){await loadProject();chat("system","Carga solicitada.");return}
+ if(l.includes("pistas")){chat("system",state.tracks.map((t,i)=>`${i+1}. ${t.name} · ${t.buffer?"audio":"vacía"} · ${t.mute?"MUTE ":""}${t.solo?"SOLO":""}`).join("\\n")||"Sin pistas.");return}
+ if(l.includes("limpiar")){$("clearBtn").click();chat("system","Pistas eliminadas.");return}
+ const backend=window.INFINITY_BACKEND_URL;
+ if(backend){
+  try{const r=await fetch(backend,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({messages:[{role:"user",content:q}],source:"standalone",version:APP_VERSION})});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();chat("system",String(d.content||d.message||JSON.stringify(d)));return}catch(e){chat("system","Backend opcional no disponible; la petición se mantiene en modo local.")}}
+ chat("system","Modo local: no tengo acceso implícito a terminal, Docker, filesystem del servidor, contratos blockchain ni servicios externos. Sí puedo ejecutar las funciones disponibles dentro de este navegador: audio, proyectos, almacenamiento local, diagnóstico y exportación.");
+}
+
+function download(blob,name){const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+
+$("audioFiles").onchange=async e=>{try{for(const f of [...e.target.files])await loadAudioFile(f);renderTracks()}catch(x){log("LOAD ERROR · "+x.message,"err")}e.target.value=""}
+$("addTrackBtn").onclick=()=>{const t=newTrack();selectedTrack=t.id;renderTracks();log("EMPTY TRACK ADDED","ok")}
+$("playBtn").onclick=()=>{try{play()}catch(e){log("PLAY ERROR · "+e.message,"err")}}
+$("pauseBtn").onclick=()=>pause()
+$("stopBtn").onclick=()=>stop()
+$("clearBtn").onclick=()=>{stop();state.tracks=[];selectedTrack=null;renderTracks();log("TRACKS CLEARED","ok")}
+$("bpm").oninput=e=>{state.bpm=Math.max(30,Math.min(300,Number(e.target.value)||120));ruler()}
+$("bars").oninput=e=>{state.bars=Math.max(1,Math.min(256,Number(e.target.value)||16));ruler()}
+$("masterGain").oninput=e=>{state.master=Math.max(0,Math.min(2,Number(e.target.value)||1));if(masterNode)masterNode.gain.value=state.master}
+$("saveBtn").onclick=()=>saveProject().catch(e=>log("SAVE ERROR · "+e.message,"err"))
+$("loadBtn").onclick=()=>loadProject().catch(e=>log("LOAD ERROR · "+e.message,"err"))
+$("exportBtn").onclick=()=>projectExport().catch(e=>log("EXPORT ERROR · "+e.message,"err"))
+$("importBtn").onclick=()=>$("projectFile").click()
+$("projectFile").onchange=async e=>{try{if(e.target.files[0])await projectImport(e.target.files[0])}catch(x){log("IMPORT ERROR · "+x.message,"err")}e.target.value=""}
+$("renderBtn").onclick=()=>renderMix().catch(e=>{log("RENDER ERROR · "+e.message,"err");$("state").textContent="ERROR"})
+$("stemsBtn").onclick=()=>renderStems().catch(e=>log("STEMS ERROR · "+e.message,"err"))
+$("knowledgeSearch").oninput=e=>renderKnowledge(e.target.value)
+$("agentSend").onclick=()=>{const v=$("agentInput").value;$("agentInput").value="";agentCommand(v)}
+$("agentInput").onkeydown=e=>{if(e.key==="Enter")$("agentSend").click()}
+document.querySelectorAll(".macro").forEach(b=>b.onclick=()=>agentCommand(b.dataset.cmd));
+
+(async function boot(){
+ try{
+  $("integrity").title=INTEGRITY;
+  await openDB();renderTracks();ruler();renderKnowledge();tick();
+  chat("system",`INFINITY Standalone ${APP_VERSION} listo.\\nMotor local sin dependencias obligatorias.\\nHash de referencia: ${INTEGRITY}`);
+  log("BOOT OK · standalone engine initialized","ok");
+  log("No backend required · Web Audio + IndexedDB + OfflineAudioContext","ok");
+ }catch(e){$("health").textContent="BOOT ERROR";$("healthDot").style.background="var(--red)";log("BOOT ERROR · "+e.message,"err")}
+})();
+</script>
+</body>
+</html>
